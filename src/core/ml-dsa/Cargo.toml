@@ -1,0 +1,29 @@
+[package]
+name = "ml_dsa"
+version = "0.1.0"
+edition = "2021"
+description = "ML-DSA (FIPS 204) implementation in Rust from scratch"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_arrays = "0.1"
+
+[dev-dependencies]
+# For property-based testing (uncomment when needed)
+# proptest = "1"
+criterion = "0.5"
+
+
+[[bench]]
+name = "mldsa"
+harness = false
+
+[features]
+default = ["ml-dsa-44", "ml-dsa-65", "ml-dsa-87"]
+ml-dsa-44 = []
+ml-dsa-65 = []
+ml-dsa-87 = []
+
+[[bin]]
+name = "ml_dsa"
+path = "src/main.rs"

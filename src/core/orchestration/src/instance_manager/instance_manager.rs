@@ -14,6 +14,7 @@ use theta_protocols::{
     // threshold_coin::protocol::ThresholdCoinProtocol,
     // threshold_signature::protocol::ThresholdSignatureProtocol,
 };
+use theta_protocols::ml_dsa::protocol::MlDsaProtocol;
 use theta_schemes::{
     dl_schemes::signatures::frost::FrostOptions, interface::{Ciphertext, SchemeError}, keys::{key_store::KeyEntry, keys::PrivateKeyShare}
 };
@@ -512,6 +513,43 @@ impl InstanceManager {
 
                         _ = self.forward_backlogged_messages(instance_id.clone());
                 
+                        return Ok(instance_id.clone());
+                    },
+                    ThresholdScheme::MlDsa44 | ThresholdScheme::MlDsa65 | ThresholdScheme::MlDsa87 => {
+                        let k = key.get_public_key().get_threshold() as usize;
+                        let act: Vec<usize> = (0..k).collect();
+                        let seed: Vec<u8> = {
+                            use rand::RngCore;
+                            let mut s = [0u8; 32];
+                            rand::rngs::OsRng.fill_bytes(&mut s);
+                            s.to_vec()
+                        };
+                        let prot = MlDsaProtocol::new(
+                            key,
+                            message.clone(),
+                            act,
+                            seed,
+                        ).map_err(|_| ProtocolError::InternalError)?;
+                        let executor = ThresholdProtocolExecutor::new(
+                            receiver,
+                            self.outgoing_p2p_sender.clone(),
+                            instance_id.clone(),
+                            self.event_emitter_sender.clone(),
+                            prot,
+                        );
+                        self.instances.insert(instance_id.clone(), instance);
+
+                        let sender = self.instance_command_sender.clone();
+                        let id = instance_id.clone();
+
+                        tokio::spawn(async move {
+                            let result = Self::execute_protocol(executor, id, sender).await;
+                            if result.is_err() {
+                                error!("Error starting ML-DSA protocol: {:?}", result.unwrap_err());
+                            }
+                        });
+
+                        _ = self.forward_backlogged_messages(instance_id.clone());
                         return Ok(instance_id.clone());
                     },
                     _ => {

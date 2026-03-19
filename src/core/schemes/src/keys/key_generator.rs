@@ -280,7 +280,35 @@ impl KeyGenerator {
                         xi[i].0, &m, &xi[i].1, &pubkey,
                     )))
                 }
-                Ok(pks)
+                return Ok(pks);
+            }
+
+            ThresholdScheme::MlDsa44 | ThresholdScheme::MlDsa65 | ThresholdScheme::MlDsa87 => {
+                if *group != Group::Lattice {
+                    return Err(SchemeError::IncompatibleGroup);
+                }
+                let base = crate::pq_schemes::ml_dsa::scheme_to_params(*scheme);
+                let tp = ml_dsa::threshold::params::lookup(n, k, base)
+                    .ok_or(SchemeError::InvalidParams(Some(
+                        format!("Unsupported (N={}, T={}) for {:?}", n, k, scheme)
+                    )))?;
+                let seed_vec = rng.random_bytes(32);
+                let mut seed = [0u8; 32];
+                seed.copy_from_slice(&seed_vec[..32]);
+                let bundle = ml_dsa::threshold::rss::keygen(&seed, &tp);
+                let mut private_keys = Vec::new();
+                for party_key in &bundle.party_keys {
+                    let pk = crate::pq_schemes::ml_dsa::MlDsaPartyKey::new(
+                        party_key, &bundle.vk, n, k, *scheme
+                    )?;
+                    private_keys.push(match scheme {
+                        ThresholdScheme::MlDsa44 => PrivateKeyShare::MlDsa44(pk),
+                        ThresholdScheme::MlDsa65 => PrivateKeyShare::MlDsa65(pk),
+                        ThresholdScheme::MlDsa87 => PrivateKeyShare::MlDsa87(pk),
+                        _ => unreachable!(),
+                    });
+                }
+                return Ok(private_keys);
             }
         }
     }

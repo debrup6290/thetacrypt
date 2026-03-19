@@ -7,4 +7,5 @@ pub mod rand;
 pub mod rsa_schemes;
 pub mod scheme_types_impl;
 pub mod util;
+pub mod pq_schemes;
 const DEBUG: bool = true;

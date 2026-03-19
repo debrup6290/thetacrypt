@@ -8,6 +8,7 @@ members = [
     "utils",
     "thetacrypt_blockchain_stub",
     "events",
+    "core/ml-dsa",
     ]
 
 [package]
@@ -23,6 +24,7 @@ theta_protocols = {path = "core/protocols", version = "0.1.0"}
 theta_proto = {path = "proto", version = "0.1.0"}
 theta_service = {path = "service", version = "0.1.0"}
 theta_network = {path = "network", version = "0.1.0"}
+ml_dsa = { path = "core/ml-dsa", version = "0.1.0" }
 terminal-menu = "2.0.6"
 thetacrypt_blockchain_stub = {path = "thetacrypt_blockchain_stub", version = "0.1.0"}
 theta_events = {path = "events", version = "0.1.0"}
@@ -43,6 +45,7 @@ base64 = "0.21.5"
 atty = "0.2.14"
 sha2 = "0.10.8"
 futures = "0.3"
+
 
 [build-dependencies]
 tonic-build = "0.8"

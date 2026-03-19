@@ -35,14 +35,17 @@ impl SchemeDetails for ThresholdScheme {
             "Cks05" => Ok(Self::Cks05),
             "Frost" => Ok(Self::Frost),
             "Sh00" => Ok(Self::Sh00),
+            "MlDsa44" => Ok(Self::MlDsa44),
+            "MlDsa65" => Ok(Self::MlDsa65),
+            "MlDsa87" => Ok(Self::MlDsa87),
             _ => Err(SchemeError::UnknownScheme),
         }
     }
 
     fn is_interactive(&self) -> bool {
         match self {
-            Self::Frost => true,
-            _ => false,
+        Self::Frost | Self::MlDsa44 | Self::MlDsa65 | Self::MlDsa87 => true,            
+        _ => false,
         }
     }
 
@@ -54,6 +57,7 @@ impl SchemeDetails for ThresholdScheme {
             Self::Frost => [Group::Ed25519].contains(&group),
             Self::Sg02 => group.is_dl(),
             Self::Sh00 => !group.is_dl(),
+            Self::MlDsa44 | Self::MlDsa65 | Self::MlDsa87 => group == Group::Lattice,
         }
     }
 
@@ -65,6 +69,7 @@ impl SchemeDetails for ThresholdScheme {
             Self::Cks05 => ThresholdOperation::Coin,
             Self::Frost => ThresholdOperation::Signature,
             Self::Sh00 => ThresholdOperation::Signature,
+            Self::MlDsa44 | Self::MlDsa65 | Self::MlDsa87 => ThresholdOperation::Signature,
         }
     }
 }
@@ -88,6 +93,7 @@ impl GroupDetails for Group {
             Self::Rsa1024 => false,
             Self::Rsa2048 => false,
             Self::Rsa4096 => false,
+            Self::Lattice => false,
         }
     }
 
@@ -100,6 +106,7 @@ impl GroupDetails for Group {
             "rsa1024" => Ok(Self::Rsa1024),
             "rsa2048" => Ok(Self::Rsa2048),
             "rsa4096" => Ok(Self::Rsa4096),
+            "Lattice" => Ok(Self::Lattice),
             _ => Err(SchemeError::UnknownGroupString),
         }
     }
@@ -124,6 +131,7 @@ impl GroupDetails for Group {
             Self::Rsa1024 => false,
             Self::Rsa2048 => false,
             Self::Rsa4096 => false,
+            Self::Lattice => false,
         }
     }
 

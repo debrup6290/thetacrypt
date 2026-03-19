@@ -8,6 +8,7 @@ theta_events = {path = "../../events", version = "0.1.0"}
 theta_schemes = {path = "../schemes", version = "0.1.0"}
 theta_proto = {path = "../../proto", version = "0.1.0"}
 theta_network = {path="../../network"}
+ml_dsa = { path = "../ml-dsa", version = "0.1.0" }
 
 chrono = { version = "0.4.31", features = ["serde"] }
 tonic = "0.8"
@@ -22,6 +23,7 @@ hex = "0.4.3"
 log = "0.4.17"
 env_logger = "0.9.1"
 futures = "0.3.21"
+bincode = "1"
 
 structopt = { version = "0.3", default-features = false }
 reqwest = { version = "0.11.10", features = ["json"] } # reqwest with JSON parsing support

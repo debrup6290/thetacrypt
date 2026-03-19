@@ -36,6 +36,9 @@ pub enum PrivateKeyShare {
     Cks05(Cks05PrivateKey),
     Sh00(Sh00PrivateKey),
     Frost(FrostPrivateKey),
+    MlDsa44(crate::pq_schemes::ml_dsa::MlDsaPartyKey),
+    MlDsa65(crate::pq_schemes::ml_dsa::MlDsaPartyKey),
+    MlDsa87(crate::pq_schemes::ml_dsa::MlDsaPartyKey),
 }
 
 impl Eq for PrivateKeyShare {}
@@ -49,6 +52,9 @@ impl PartialEq for PrivateKeyShare {
             (Self::Sh00(l0), Self::Sh00(r0)) => l0.eq(r0),
             (Self::Frost(l0), Self::Frost(r0)) => l0.eq(r0),
             (Self::Cks05(l0), Self::Cks05(r0)) => l0.eq(r0),
+            (Self::MlDsa44(l), Self::MlDsa44(r)) => l == r,
+            (Self::MlDsa65(l), Self::MlDsa65(r)) => l == r,
+            (Self::MlDsa87(l), Self::MlDsa87(r)) => l == r,
             _ => false,
         }
     }
@@ -63,6 +69,9 @@ impl PrivateKeyShare {
             Self::Cks05(_) => ThresholdScheme::Cks05,
             Self::Sh00(_) => ThresholdScheme::Sh00,
             Self::Frost(_) => ThresholdScheme::Frost,
+            Self::MlDsa44(_) => ThresholdScheme::MlDsa44,
+            Self::MlDsa65(_) => ThresholdScheme::MlDsa65,
+            Self::MlDsa87(_) => ThresholdScheme::MlDsa87,
         }
     }
 
@@ -74,6 +83,9 @@ impl PrivateKeyShare {
             PrivateKeyShare::Cks05(key) => key.get_key_id(),
             PrivateKeyShare::Sh00(key) => key.get_key_id(),
             PrivateKeyShare::Frost(key) => key.get_key_id(),
+            PrivateKeyShare::MlDsa44(k) => k.get_key_id(),
+            PrivateKeyShare::MlDsa65(k) => k.get_key_id(),
+            PrivateKeyShare::MlDsa87(k) => k.get_key_id(),
         }
     }
 
@@ -85,6 +97,9 @@ impl PrivateKeyShare {
             PrivateKeyShare::Cks05(key) => key.get_share_id(),
             PrivateKeyShare::Sh00(key) => key.get_share_id(),
             PrivateKeyShare::Frost(key) => key.get_share_id(),
+            PrivateKeyShare::MlDsa44(k) => k.get_share_id(),
+            PrivateKeyShare::MlDsa65(k) => k.get_share_id(),
+            PrivateKeyShare::MlDsa87(k) => k.get_share_id(),
         }
     }
 
@@ -96,6 +111,9 @@ impl PrivateKeyShare {
             PrivateKeyShare::Cks05(key) => key.get_group(),
             PrivateKeyShare::Sh00(key) => key.get_group(),
             PrivateKeyShare::Frost(key) => key.get_group(),
+            PrivateKeyShare::MlDsa44(k) => k.get_group(),
+            PrivateKeyShare::MlDsa65(k) => k.get_group(),
+            PrivateKeyShare::MlDsa87(k) => k.get_group(),
         }
     }
 
@@ -107,6 +125,9 @@ impl PrivateKeyShare {
             PrivateKeyShare::Cks05(key) => key.get_threshold(),
             PrivateKeyShare::Sh00(key) => key.get_threshold(),
             PrivateKeyShare::Frost(key) => key.get_threshold(),
+            PrivateKeyShare::MlDsa44(k) => k.get_threshold(),
+            PrivateKeyShare::MlDsa65(k) => k.get_threshold(),
+            PrivateKeyShare::MlDsa87(k) => k.get_threshold(),
         }
     }
 
@@ -118,6 +139,9 @@ impl PrivateKeyShare {
             PrivateKeyShare::Cks05(key) => PublicKey::Cks05(key.get_public_key().clone()),
             PrivateKeyShare::Sh00(key) => PublicKey::Sh00(key.get_public_key().clone()),
             PrivateKeyShare::Frost(key) => PublicKey::Frost(key.get_public_key().clone()),
+            PrivateKeyShare::MlDsa44(k) => PublicKey::MlDsa44(k.get_public_key()),
+            PrivateKeyShare::MlDsa65(k) => PublicKey::MlDsa65(k.get_public_key()),
+            PrivateKeyShare::MlDsa87(k) => PublicKey::MlDsa87(k.get_public_key()),
         }
     }
 
@@ -263,6 +287,45 @@ impl Serializable for PrivateKeyShare {
 
                 return Ok(result.unwrap());
             }
+            Self::MlDsa44(key) => {
+                let result = asn1::write(|w| {
+                    w.write_element(&asn1::SequenceWriter::new(&|w| {
+                        w.write_element(&ThresholdScheme::MlDsa44.get_id())?;
+                        let bytes = key.to_bytes();
+                        if bytes.is_err() { return Err(WriteError::AllocationError); }
+                        w.write_element(&bytes.unwrap().as_slice())?;
+                        Ok(())
+                    }))
+                });
+                if result.is_err() { return Err(SchemeError::SerializationFailed); }
+                return Ok(result.unwrap());
+            }
+            Self::MlDsa65(key) => {
+                let result = asn1::write(|w| {
+                    w.write_element(&asn1::SequenceWriter::new(&|w| {
+                        w.write_element(&ThresholdScheme::MlDsa65.get_id())?;
+                        let bytes = key.to_bytes();
+                        if bytes.is_err() { return Err(WriteError::AllocationError); }
+                        w.write_element(&bytes.unwrap().as_slice())?;
+                        Ok(())
+                    }))
+                });
+                if result.is_err() { return Err(SchemeError::SerializationFailed); }
+                return Ok(result.unwrap());
+            }
+            Self::MlDsa87(key) => {
+                let result = asn1::write(|w| {
+                    w.write_element(&asn1::SequenceWriter::new(&|w| {
+                        w.write_element(&ThresholdScheme::MlDsa87.get_id())?;
+                        let bytes = key.to_bytes();
+                        if bytes.is_err() { return Err(WriteError::AllocationError); }
+                        w.write_element(&bytes.unwrap().as_slice())?;
+                        Ok(())
+                    }))
+                });
+                if result.is_err() { return Err(SchemeError::SerializationFailed); }
+                return Ok(result.unwrap());
+            }
         }
     }
 
@@ -326,8 +389,28 @@ impl Serializable for PrivateKeyShare {
 
                         key = Ok(Self::Sh00(r.unwrap()));
                     }
-                }
-
+                    ThresholdScheme::MlDsa44 => {
+                        let r = crate::pq_schemes::ml_dsa::MlDsaPartyKey::from_bytes(&bytes);
+                        if r.is_err() {
+                            return Err(ParseError::new(asn1::ParseErrorKind::InvalidValue));
+                        }
+                        key = Ok(Self::MlDsa44(r.unwrap()));
+                    }
+                    ThresholdScheme::MlDsa65 => {
+                        let r = crate::pq_schemes::ml_dsa::MlDsaPartyKey::from_bytes(&bytes);
+                        if r.is_err() {
+                            return Err(ParseError::new(asn1::ParseErrorKind::InvalidValue));
+                        }
+                        key = Ok(Self::MlDsa65(r.unwrap()));
+                    }
+                    ThresholdScheme::MlDsa87 => {
+                        let r = crate::pq_schemes::ml_dsa::MlDsaPartyKey::from_bytes(&bytes);
+                        if r.is_err() {
+                            return Err(ParseError::new(asn1::ParseErrorKind::InvalidValue));
+                        }
+                        key = Ok(Self::MlDsa87(r.unwrap()));
+                    }
+                                     }
                 return key;
             });
         });
@@ -402,6 +485,9 @@ pub enum PublicKey {
     Cks05(Cks05PublicKey),
     Sh00(Sh00PublicKey),
     Frost(FrostPublicKey),
+    MlDsa44(crate::pq_schemes::ml_dsa::MlDsaPublicKey),
+    MlDsa65(crate::pq_schemes::ml_dsa::MlDsaPublicKey),
+    MlDsa87(crate::pq_schemes::ml_dsa::MlDsaPublicKey),
 }
 
 impl Eq for PublicKey {}
@@ -529,6 +615,45 @@ impl Serializable for PublicKey {
 
                 return Ok(result.unwrap());
             }
+            Self::MlDsa44(key) => {
+                let result = asn1::write(|w| {
+                    w.write_element(&asn1::SequenceWriter::new(&|w| {
+                        w.write_element(&ThresholdScheme::MlDsa44.get_id())?;
+                        let bytes = key.to_bytes();
+                        if bytes.is_err() { return Err(WriteError::AllocationError); }
+                        w.write_element(&bytes.unwrap().as_slice())?;
+                        Ok(())
+                    }))
+                });
+                if result.is_err() { return Err(SchemeError::SerializationFailed); }
+                return Ok(result.unwrap());
+            }
+            Self::MlDsa65(key) => {
+                let result = asn1::write(|w| {
+                    w.write_element(&asn1::SequenceWriter::new(&|w| {
+                        w.write_element(&ThresholdScheme::MlDsa65.get_id())?;
+                        let bytes = key.to_bytes();
+                        if bytes.is_err() { return Err(WriteError::AllocationError); }
+                        w.write_element(&bytes.unwrap().as_slice())?;
+                        Ok(())
+                    }))
+                });
+                if result.is_err() { return Err(SchemeError::SerializationFailed); }
+                return Ok(result.unwrap());
+            }
+            Self::MlDsa87(key) => {
+                let result = asn1::write(|w| {
+                    w.write_element(&asn1::SequenceWriter::new(&|w| {
+                        w.write_element(&ThresholdScheme::MlDsa87.get_id())?;
+                        let bytes = key.to_bytes();
+                        if bytes.is_err() { return Err(WriteError::AllocationError); }
+                        w.write_element(&bytes.unwrap().as_slice())?;
+                        Ok(())
+                    }))
+                });
+                if result.is_err() { return Err(SchemeError::SerializationFailed); }
+                return Ok(result.unwrap());
+            }
         }
     }
 
@@ -592,6 +717,27 @@ impl Serializable for PublicKey {
 
                         key = Ok(Self::Sh00(r.unwrap()));
                     }
+                    ThresholdScheme::MlDsa44 => {
+                        let r = crate::pq_schemes::ml_dsa::MlDsaPublicKey::from_bytes(&bytes);
+                        if r.is_err() {
+                            return Err(ParseError::new(asn1::ParseErrorKind::InvalidValue));
+                        }
+                        key = Ok(Self::MlDsa44(r.unwrap()));
+                    }
+                    ThresholdScheme::MlDsa65 => {
+                        let r = crate::pq_schemes::ml_dsa::MlDsaPublicKey::from_bytes(&bytes);
+                        if r.is_err() {
+                            return Err(ParseError::new(asn1::ParseErrorKind::InvalidValue));
+                        }
+                        key = Ok(Self::MlDsa65(r.unwrap()));
+                    }
+                    ThresholdScheme::MlDsa87 => {
+                        let r = crate::pq_schemes::ml_dsa::MlDsaPublicKey::from_bytes(&bytes);
+                        if r.is_err() {
+                            return Err(ParseError::new(asn1::ParseErrorKind::InvalidValue));
+                        }
+                        key = Ok(Self::MlDsa87(r.unwrap()));
+                    }
                 }
 
                 return key;
@@ -615,6 +761,9 @@ impl PublicKey {
             PublicKey::Sh00(key) => key.get_key_id(),
             PublicKey::Frost(key) => key.get_key_id(),
             PublicKey::Cks05(key) => key.get_key_id(),
+            PublicKey::MlDsa44(k) => k.get_key_id(),
+            PublicKey::MlDsa65(k) => k.get_key_id(),
+            PublicKey::MlDsa87(k) => k.get_key_id(),
         }
     }
 
@@ -626,6 +775,9 @@ impl PublicKey {
             PublicKey::Cks05(_key) => ThresholdScheme::Cks05,
             PublicKey::Sh00(_key) => ThresholdScheme::Sh00,
             PublicKey::Frost(_key) => ThresholdScheme::Frost,
+            PublicKey::MlDsa44(_) => ThresholdScheme::MlDsa44,
+            PublicKey::MlDsa65(_) => ThresholdScheme::MlDsa65,
+            PublicKey::MlDsa87(_) => ThresholdScheme::MlDsa87,
         }
     }
 
@@ -641,6 +793,9 @@ impl PublicKey {
             PublicKey::Cks05(key) => key.get_group(),
             PublicKey::Sh00(key) => key.get_group(),
             PublicKey::Frost(key) => key.get_group(),
+            PublicKey::MlDsa44(k) => k.get_group(),
+            PublicKey::MlDsa65(k) => k.get_group(),
+            PublicKey::MlDsa87(k) => k.get_group(),
         }
     }
 
@@ -652,6 +807,9 @@ impl PublicKey {
             PublicKey::Cks05(key) => key.get_threshold(),
             PublicKey::Sh00(key) => key.get_threshold(),
             PublicKey::Frost(key) => key.get_threshold(),
+            PublicKey::MlDsa44(k) => k.get_threshold(),
+            PublicKey::MlDsa65(k) => k.get_threshold(),
+            PublicKey::MlDsa87(k) => k.get_threshold(),
         }
     }
 
@@ -663,6 +821,9 @@ impl PublicKey {
             PublicKey::Cks05(key) => key.get_n(),
             PublicKey::Sh00(key) => key.get_n(),
             PublicKey::Frost(key) => key.get_n(),
+            PublicKey::MlDsa44(k) => k.get_n(),
+            PublicKey::MlDsa65(k) => k.get_n(),
+            PublicKey::MlDsa87(k) => k.get_n(),
         }
     }
 

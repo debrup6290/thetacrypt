@@ -9,6 +9,7 @@ theta_protocols = {path = "../protocols", version = "0.1.0"}
 theta_proto = {path = "../../proto", version = "0.1.0"}
 theta_network = {path="../../network"}
 theta_events = {path="../../events"}
+ml_dsa = { path = "../ml-dsa", version = "0.1.0" }
 
 tonic = "0.8"
 prost = "0.11"

@@ -8,6 +8,9 @@ enum ThresholdScheme {
     Cks05 = 3;
     Frost = 4;
     Sh00 = 5;
+    MlDsa44 = 6;
+    MlDsa65 = 7;
+    MlDsa87 = 8;
 }
 
 enum Group {
@@ -18,6 +21,7 @@ enum Group {
     Rsa1024 = 4;
     Rsa2048 = 5;
     Rsa4096 = 6;
+    Lattice = 7;
 }
 
 enum ThresholdOperation {

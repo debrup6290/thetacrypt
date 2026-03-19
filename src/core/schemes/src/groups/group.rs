@@ -25,8 +25,8 @@ TODO: change code to standard way of encoding EC groups */
    around the EC implementation Miracl Core provides to allow for curve-agnosic implementations of schemes.
 */
 #[repr(C)]
-#[rasn(enumerated)]
 #[derive(Debug, Clone, AsnType, GroupOperations)]
+#[rasn(enumerated)]
 pub enum GroupElement {
     #[supports_pairings]
     Bls12381(Bls12381),
