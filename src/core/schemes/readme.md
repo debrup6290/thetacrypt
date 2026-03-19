@@ -12,6 +12,7 @@ There are 3 kinds of threshold schemes available: `ThresholdCipher`, `ThresholdS
 Threshold Ciphers:
 - [Sg02](https://link.springer.com/content/pdf/10.1007/s00145-001-0020-9.pdf) (ZK-based)
 - [Bz03](https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.119.1717&rep=rep1&type=pdf) (Pairing-based)
+- [ML-DSA / FIPS 204](https://eprint.iacr.org/2026/013) (Lattice-based, post-quantum) — supports ML-DSA-44, ML-DSA-65, ML-DSA-87
 
 Threshold Signatures:
 - [Bls04](https://link.springer.com/article/10.1007/s00145-004-0314-9) (Pairing-based)
