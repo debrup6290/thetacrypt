@@ -39,63 +39,67 @@ use super::hyperball::{self, HyperballSample};
 use super::params::{self as threshold_params, ThresholdParams};
 use super::rss::{self, PartyKey, VerificationKey};
 
-// ---
 
-/// ---
 pub struct Round1Msg {
     pub party_id: usize,
-    /// ---
+    
     pub commitments: Vec<Vec<u8>>,
 }
 
-/// ---
+
 pub struct Round2Msg {
     pub party_id: usize,
-    /// ---
+    
     pub w_values: Vec<PolyVec>,
 }
 
-/// ---
+
 pub struct Round3Msg {
     pub party_id: usize,
-    /// ---
+    
     pub z1_values: Vec<Option<PolyVec>>,
 }
 
-// ---
 
-/// ---
+
+
 pub struct SigningState {
     pub party_id: usize,
     pub tp: ThresholdParams,
 
-    // ---
-    /// ---
+    
+    
     samples: Vec<HyperballSample>,
-    /// ---
+    
     w_values: Vec<PolyVec>,
-    /// ---
+    
     #[allow(dead_code)]
     own_commitments: Vec<Vec<u8>>,
 
-    // ---
-    /// ---
+    
+    
     all_round1: Vec<Round1Msg>,
-    /// ---
+    
     msg: Vec<u8>,
-    /// ---
+    
     act: Vec<usize>,
 }
 
-// ---
+impl SigningState {
+    /// Overwrite the active set.  Used by the network protocol layer to
+    /// replace the placeholder written by `share_sign_2` with the real
+    /// T-sized active set computed after round 2.
+    pub fn set_act(&mut self, act: Vec<usize>) {
+        self.act = act;
+    }
+}
 
-/// ---
 ///
-/// ---
-/// ---
+
+
 ///
-/// ---
-/// ---
+
+
 pub fn share_sign_1(
     vk: &VerificationKey,
     party_key: &PartyKey,
@@ -105,7 +109,7 @@ pub fn share_sign_1(
     let base = tp.base;
     let k_instances = tp.num_instances;
 
-    // ---
+    
     let a_hat = sampling::expand_a(&vk.rho, base);
 
     let mut samples = Vec::with_capacity(k_instances);
@@ -113,24 +117,24 @@ pub fn share_sign_1(
     let mut commitments = Vec::with_capacity(k_instances);
 
     for j in 0..k_instances {
-        // ---
+        
         let mut seed_xof = shake::Shake256::new();
         seed_xof.absorb(signing_seed);
         seed_xof.absorb(&(party_key.party_id as u32).to_le_bytes());
         seed_xof.absorb(&(j as u32).to_le_bytes());
         let instance_seed = seed_xof.squeeze_vec(64);
 
-        // ---
+        
         let sample = hyperball::sample_randomness(&instance_seed, tp);
 
-        // ---
-        // ---
+        
+        
         let ri_1_hat = poly::polyvec_ntt(&sample.ri_1);
         let w_hat = poly::mat_vec_mul_ntt(&a_hat, &ri_1_hat);
         let w_normal = poly::polyvec_inv_ntt(&w_hat);
         let w_ij = poly::polyvec_add(&w_normal, &sample.ri_2);
 
-        // ---
+        
         let cmt = commitment_hash(&vk.packed, party_key.party_id, j, &w_ij, base);
 
         samples.push(sample);
@@ -157,13 +161,6 @@ pub fn share_sign_1(
     (state, msg)
 }
 
-// ---
-
-/// ---
-///
-/// ---
-///
-/// ---
 pub fn share_sign_2(
     state: &mut SigningState,
     _vk: &VerificationKey,
@@ -181,18 +178,6 @@ pub fn share_sign_2(
     })
 }
 
-// ---
-
-/// ---
-///
-/// ---
-/// ---
-/// ---
-/// ---
-/// ---
-/// ---
-///
-/// ---
 pub fn share_sign_3(
     state: &SigningState,
     vk: &VerificationKey,
@@ -204,9 +189,9 @@ pub fn share_sign_3(
     let k_instances = tp.num_instances;
     let act = &state.act;
 
-    // ---
+    
     for r2 in round2_messages {
-        // ---
+        
         let r1 = state.all_round1.iter()
             .find(|m| m.party_id == r2.party_id)?;
 
@@ -215,24 +200,24 @@ pub fn share_sign_3(
                 &vk.packed, r2.party_id, j, &r2.w_values[j], base,
             );
             if expected != r1.commitments[j] {
-                return None; // ---
+                return None; 
             }
         }
     }
 
-    // ---
+    
     let partition = threshold_params::rss_recover(tp.n_parties, tp.threshold, act);
 
-    // ---
+    
     let (s1_part, s2_part) = rss::partial_secret(
         party_key, &partition[state.party_id], tp,
     );
 
-    // ---
+    
     let s1_part_hat = poly::polyvec_ntt(&s1_part);
     let s2_part_hat = poly::polyvec_ntt(&s2_part);
 
-    // ---
+    
     let mut mu_xof = shake::Shake256::new();
     mu_xof.absorb(&vk.tr);
     mu_xof.absorb(&state.msg);
@@ -241,13 +226,13 @@ pub fn share_sign_3(
     let mut z1_values = Vec::with_capacity(k_instances);
 
     for j in 0..k_instances {
-        // ---
+        
         let mut w_j = poly::polyvec_zero(base.k);
         for r2 in round2_messages {
             w_j = poly::polyvec_add(&w_j, &r2.w_values[j]);
         }
 
-        // ---
+        
         let mut w1_j = Vec::with_capacity(base.k);
         for i in 0..base.k {
             let mut w1_poly = Poly::zero();
@@ -257,7 +242,7 @@ pub fn share_sign_3(
             w1_j.push(w1_poly);
         }
 
-        // ---
+        
         let mut c_hash = shake::Shake256::new();
         c_hash.absorb(&mu);
         let w1_bits = base.w1_bits();
@@ -266,11 +251,11 @@ pub fn share_sign_3(
         }
         let c_tilde_j = c_hash.squeeze_vec(base.c_tilde_bytes);
 
-        // ---
+        
         let c_j = sampling::sample_in_ball(&c_tilde_j, base.tau);
         let c_j_hat = poly::ntt(&c_j);
 
-        // ---
+        
         let mut v1 = Vec::with_capacity(base.l);
         for p in 0..base.l {
             v1.push(poly::inv_ntt(&c_j_hat.pointwise_mul(&s1_part_hat[p])));
@@ -280,7 +265,7 @@ pub fn share_sign_3(
             v2.push(poly::inv_ntt(&c_j_hat.pointwise_mul(&s2_part_hat[p])));
         }
 
-        // ---
+        
         let z1 = hyperball::hrej(&v1, &v2, &state.samples[j], tp);
         z1_values.push(z1);
     }
@@ -291,12 +276,7 @@ pub fn share_sign_3(
     })
 }
 
-// ---
 
-/// ---
-///
-/// ---
-/// ---
 fn commitment_hash(
     vk_packed: &[u8],
     party_id: usize,
@@ -308,15 +288,15 @@ fn commitment_hash(
     xof.absorb(vk_packed);
     xof.absorb(&(party_id as u32).to_le_bytes());
     xof.absorb(&(instance as u32).to_le_bytes());
-    // ---
-    // ---
+    
+    
     for poly in w {
         xof.absorb(&encoding::simple_bit_pack(poly, 23));
     }
     xof.squeeze_vec(base.c_tilde_bytes)
 }
 
-// ---
+
 
 #[cfg(test)]
 mod tests {
@@ -343,7 +323,7 @@ mod tests {
         assert_eq!(state.w_values.len(), tp.num_instances);
         assert_eq!(state.samples.len(), tp.num_instances);
 
-        // ---
+        
         for cmt in &r1_msg.commitments {
             assert_eq!(cmt.len(), ML_DSA_44.c_tilde_bytes);
         }
@@ -374,7 +354,7 @@ mod tests {
             &bundle.vk, &bundle.party_keys[1], &tp, b"shared seed",
         );
 
-        // ---
+        
         assert_ne!(r1_0.commitments[0], r1_1.commitments[0]);
     }
 
@@ -405,8 +385,8 @@ mod tests {
         let act = vec![0, 1];
         let msg = b"threshold signing test message";
 
-        // ---
-        // ---
+        
+        
         let mut succeeded = false;
         for attempt in 0u8..10 {
             let mut seed0 = b"seed_party_0_attempt_".to_vec();
@@ -414,7 +394,7 @@ mod tests {
             let mut seed1 = b"seed_party_1_attempt_".to_vec();
             seed1.push(attempt);
 
-            // ---
+            
             let (mut state0, r1_0) = share_sign_1(
                 &bundle.vk, &bundle.party_keys[0], &tp, &seed0,
             );
@@ -422,7 +402,7 @@ mod tests {
                 &bundle.vk, &bundle.party_keys[1], &tp, &seed1,
             );
 
-            // ---
+            
             let r2_0 = share_sign_2(
                 &mut state0, &bundle.vk, &act, msg,
                 vec![r1_0.clone_msg(), r1_1.clone_msg()],
@@ -432,7 +412,7 @@ mod tests {
                 vec![r1_0.clone_msg(), r1_1.clone_msg()],
             ).unwrap();
 
-            // ---
+            
             let r3_0 = share_sign_3(
                 &state0, &bundle.vk, &bundle.party_keys[0],
                 &[r2_0.clone_msg(), r2_1.clone_msg()],
@@ -442,7 +422,7 @@ mod tests {
                 &[r2_0.clone_msg(), r2_1.clone_msg()],
             ).unwrap();
 
-            // ---
+            
             for j in 0..tp.num_instances {
                 if r3_0.z1_values[j].is_some() && r3_1.z1_values[j].is_some() {
                     succeeded = true;
@@ -455,12 +435,12 @@ mod tests {
     }
 }
 
-// ---
+
 // (In a real network protocol these would be serialized/deserialized,
-// ---
+
 
 impl Round1Msg {
-    /// ---
+    
     pub fn clone_msg(&self) -> Round1Msg {
         Round1Msg {
             party_id: self.party_id,
@@ -470,7 +450,7 @@ impl Round1Msg {
 }
 
 impl Round2Msg {
-    /// ---
+    
     pub fn clone_msg(&self) -> Round2Msg {
         Round2Msg {
             party_id: self.party_id,
@@ -482,7 +462,7 @@ impl Round2Msg {
 }
 
 impl Round3Msg {
-    /// ---
+    
     pub fn clone_msg(&self) -> Round3Msg {
         Round3Msg {
             party_id: self.party_id,

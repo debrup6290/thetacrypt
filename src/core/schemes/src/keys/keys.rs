@@ -906,15 +906,23 @@ pub fn calc_key_id(bytes: &[u8]) -> String {
 }
 
 pub fn key2id(key: &PublicKey) -> String {
+    // ML-DSA keys store the id directly — skip ASN.1 unwrapping
+    match key {
+        PublicKey::MlDsa44(k) => return k.get_key_id().to_string(),
+        PublicKey::MlDsa65(k) => return k.get_key_id().to_string(),
+        PublicKey::MlDsa87(k) => return k.get_key_id().to_string(),
+        _ => {}
+    }
+
     let bytes = key.to_bytes().unwrap();
     let inner_bytes: Result<Vec<u8>, ParseError> = asn1::parse(&bytes, |d| {
         return d.read_element::<asn1::Sequence>()?.parse(|d| {
             d.read_element::<u8>()?;
             let bytes = d.read_element::<&[u8]>()?.to_vec();
-
             return Ok(bytes);
         });
     });
 
     calc_key_id(&inner_bytes.unwrap())
 }
+

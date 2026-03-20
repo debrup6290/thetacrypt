@@ -1,3 +1,25 @@
+## **Hackathon Extension: Threshold ML-DSA (Post-Quantum)
+
+This fork extends Thetacrypt with a post-quantum threshold signing primitive as part of the 
+[Shape Rotator Virtual Hackathon](https://www.encodeclub.com/programmes/shape-rotator-virtual-hackathon) submission.
+
+### What was added
+
+| Module | Change |
+|--------|--------|
+| `core/ml-dsa/` | From-scratch FIPS 204 ML-DSA implementation + RSS threshold protocol |
+| `proto/src/scheme_types.proto` | MlDsa44/65/87 scheme variants, Lattice group |
+| `core/schemes/src/pq_schemes/` | Adapter layer bridging ml-dsa into Thetacrypt's type system |
+| `core/protocols/src/ml_dsa/` | 3-round ThresholdRoundProtocol state machine |
+| `core/orchestration/` | Protocol dispatch for ML-DSA signing requests |
+
+### Reference
+
+Based on [Efficient Threshold ML-DSA](https://eprint.iacr.org/2026/013), presented at 
+NIST's 2025 PQC Standardization Conference. Signatures produced are standard FIPS 204 
+and verify with any unmodified ML-DSA verifier.
+
+---
 # Thetacrypt - Threshold Cryptography Distributed Service in Rust
 
 Thetacrypt is a WIP codebase that aims at providing **threshold cryptography** as a service.
@@ -34,4 +56,4 @@ Threshold cryptosystems are known for public-key schemes only, where applying se
 | FROST        | Signature              | [FROST: Flexible Round-Optimized Schnorr Threshold Signatures](https://eprint.iacr.org/2020/852.pdf) (ZK-based)                                                                    |     
 | SH00         | Signature              | [Practical Threshold Signatures](https://www.iacr.org/archive/eurocrypt2000/1807/18070209-new.pdf) (Threshold RSA)                                                                 |
 | CKS05        | Coin-flip              | [Random Oracles in Constantinople: Practical Asynchronous Byzantine Agreement Using Cryptography](https://link.springer.com/content/pdf/10.1007/s00145-005-0318-0.pdf) (ZK-based)  |
-
+| ML-DSA (Threshold) | Signature | [Efficient Threshold ML-DSA](https://eprint.iacr.org/2026/013) (Lattice-based, FIPS 204) |

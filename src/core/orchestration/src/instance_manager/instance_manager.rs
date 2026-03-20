@@ -516,18 +516,17 @@ impl InstanceManager {
                         return Ok(instance_id.clone());
                     },
                     ThresholdScheme::MlDsa44 | ThresholdScheme::MlDsa65 | ThresholdScheme::MlDsa87 => {
-                        let k = key.get_public_key().get_threshold() as usize;
-                        let act: Vec<usize> = (0..k).collect();
                         let seed: Vec<u8> = {
                             use rand::RngCore;
                             let mut s = [0u8; 32];
                             rand::rngs::OsRng.fill_bytes(&mut s);
                             s.to_vec()
                         };
+                        // Active set is now computed dynamically inside the
+                        // protocol after round 2, so we no longer pass `act`.
                         let prot = MlDsaProtocol::new(
                             key,
                             message.clone(),
-                            act,
                             seed,
                         ).map_err(|_| ProtocolError::InternalError)?;
                         let executor = ThresholdProtocolExecutor::new(

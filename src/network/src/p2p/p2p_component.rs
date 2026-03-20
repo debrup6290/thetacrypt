@@ -290,6 +290,7 @@ mod utils {
             // Meta data seems to be pusehd to to peers on every heartbeat, so they must be frequent
             // enough to ensure reliable delivery of messages.
             .heartbeat_interval(Duration::from_secs(1))
+            .max_transmit_size(2 * 1024 * 1024)
             .validation_mode(ValidationMode::Strict) // This sets the kind of message validation. The default is Strict (enforce message signing)
             .message_id_fn(message_id_fn) // content-address messages. No two messages of the same content will be propagated.
             .build()

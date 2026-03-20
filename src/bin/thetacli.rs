@@ -332,7 +332,7 @@ fn verify(
         return Err(Error::Threshold(SchemeError::DeserializationFailed));
     }
 
-    let hex_signature = hex_signature.unwrap();
+    let hex_signature = hex_signature.unwrap().trim().to_string();
 
     debug!("{}", &hex_signature);
 

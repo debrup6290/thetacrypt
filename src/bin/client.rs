@@ -217,7 +217,8 @@ async fn threshold_signature(
     let mut input = String::new();
     io::stdin().read_line(&mut input)?;
 
-    let sign_request = create_signing_request(pk, input.into_bytes());
+    let msg_bytes = input.trim_end().as_bytes().to_vec();
+    let sign_request = create_signing_request(pk, msg_bytes);
 
     let mut i = 0;
     let mut instance_id = String::new();
